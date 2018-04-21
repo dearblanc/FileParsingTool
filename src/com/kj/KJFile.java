@@ -3,6 +3,7 @@ package com.kj;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 class KJFile {
@@ -16,11 +17,12 @@ class KJFile {
 
     public List<KJFile> getChildFiles() {
         try {
-            return List.of(file.listFiles())
+            return List.of(Objects.requireNonNull(file.listFiles()))
                     .stream()
-                    .filter(f -> f.isFile() && f.canRead())
-                    .map(f -> new KJFile(f))
-                    .filter(f -> f.isLogFile())
+                    .filter(File::isFile)
+                    .filter(File::canRead)
+                    .map(KJFile::new)
+                    .filter(KJFile::isLogFile)
                     .collect(Collectors.toList());
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -30,10 +32,10 @@ class KJFile {
 
     public List<KJFile> getChildDirectories() {
         try {
-            return List.of(file.listFiles())
+            return List.of(Objects.requireNonNull(file.listFiles()))
                     .stream()
-                    .filter(f -> f.isDirectory())
-                    .map(f -> new KJFile(f))
+                    .filter(File::isDirectory)
+                    .map(KJFile::new)
                     .collect(Collectors.toList());
         } catch (NullPointerException e) {
             e.printStackTrace();

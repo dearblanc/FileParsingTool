@@ -12,6 +12,6 @@ class JobThread extends Thread {
     @Override
     public void run() {
         super.run();
-        files.forEach(f -> new Parser(f).parse());
+        files.stream().map(Parser::new).forEach(Parser::parse);
     }
 }

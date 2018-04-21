@@ -12,7 +12,7 @@ class TaskAllocator implements JobResultListener {
     private final JobResultListener listener;
     private final List<KJFile> rawFileQ = new ArrayList<>();
     private final SynchronousQueue<KJFile> processdFileQ = new SynchronousQueue<>();
-    private List<JobThread> tasks = new ArrayList<>(4);
+    private List<Thread> tasks = new ArrayList<>(4);
 
     TaskAllocator(JobResultListener listener) {
         this.listener = listener;
@@ -23,7 +23,7 @@ class TaskAllocator implements JobResultListener {
                 List.of(files)
                         .stream()
                         .flatMap(Stream::ofNullable)
-                        .map(f -> new KJFile(f))
+                        .map(KJFile::new)
                         .collect(Collectors.toList()));
         doWork();
     }
@@ -44,11 +44,11 @@ class TaskAllocator implements JobResultListener {
                 tasks.add(new JobThread(file));
             }
         }
-        tasks.forEach(t -> t.run());
+        tasks.forEach(Thread::run);
     }
 
     private void addAllFiles(List<KJFile> files) {
-        files.stream().flatMap(f -> Stream.ofNullable(f)).forEach(f -> addFile(f));
+        files.stream().flatMap(Stream::ofNullable).forEach(this::addFile);
     }
 
     private void addFiles(List<KJFile> files) {
@@ -56,13 +56,18 @@ class TaskAllocator implements JobResultListener {
     }
 
     private void addFile(KJFile file) {
-        Optional.ofNullable(file.getChildDirectories()).ifPresent(f -> addAllFiles(f));
-        Optional.ofNullable(file.getChildFiles()).ifPresent(f -> addFiles(f));
+        Optional.ofNullable(file.getChildDirectories()).ifPresent(this::addAllFiles);
+        Optional.ofNullable(file.getChildFiles()).ifPresent(this::addFiles);
         rawFileQ.add(file);
     }
 
     @Override
-    public void onJobDone(List<KJFile> files) {
-        files.forEach(f -> processdFileQ.offer(f));
+    public void onJobDone(Thread thread, List<KJFile> files) {
+        files.forEach(processdFileQ::offer);
+        tasks.remove(thread);
+
+        if (tasks.isEmpty()) {
+            listener.onJobDone(Thread.currentThread(), List.of((KJFile[]) processdFileQ.toArray()));
+        }
     }
 }

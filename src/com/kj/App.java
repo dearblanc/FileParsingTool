@@ -18,10 +18,8 @@ import java.util.stream.Stream;
 public class App implements JobResultListener {
     private JFrame frame;
     private JPanel mainPane;
-    private JButton buttonBottom;
     private JList<String> list;
     private DefaultListModel<String> model;
-
     private TaskAllocator worker;
 
     private App(JFrame frame) {
@@ -60,7 +58,6 @@ public class App implements JobResultListener {
     }
 
     private void initMainPane() {
-        mainPane = new JPanel();
         mainPane.setLayout(new BorderLayout());
         frame.setContentPane(mainPane);
     }
@@ -134,7 +131,7 @@ public class App implements JobResultListener {
     }
 
     private void initBottomButton() {
-        buttonBottom = new JButton("Load file");
+        JButton buttonBottom = new JButton("Load file");
         mainPane.add(buttonBottom, BorderLayout.SOUTH);
         buttonBottom.addMouseListener(
                 new MouseListener() {
@@ -188,6 +185,6 @@ public class App implements JobResultListener {
     }
 
     @Override
-    public void onJobDone(List<KJFile> files) {
+    public void onJobDone(Thread thread, List<KJFile> files) {
     }
 }
