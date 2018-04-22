@@ -3,55 +3,31 @@ package com.kj;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Random;
 
 class KJFile {
-    private final File file;
-    private List<KJFile> child = new ArrayList<>();
+    private final String fileName;
     private List<Key> keys = new ArrayList<>();
 
     KJFile(File file) {
-        this.file = file;
+        fileName = file.getAbsolutePath();
     }
 
-    public List<KJFile> getChildFiles() {
-        try {
-            return List.of(Objects.requireNonNull(file.listFiles()))
-                    .stream()
-                    .filter(File::isFile)
-                    .filter(File::canRead)
-                    .map(KJFile::new)
-                    .filter(KJFile::isLogFile)
-                    .collect(Collectors.toList());
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            return List.of();
-        }
-    }
-
-    public List<KJFile> getChildDirectories() {
-        try {
-            return List.of(Objects.requireNonNull(file.listFiles()))
-                    .stream()
-                    .filter(File::isDirectory)
-                    .map(KJFile::new)
-                    .collect(Collectors.toList());
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            return List.of();
-        }
+    public String getFileNameAbsolutePath() {
+        return fileName;
     }
 
     public List<Key> getKeys() {
         return keys;
     }
 
-    public void setKeys(Key[] arrKey) {
-        keys = List.of(arrKey);
+    public void setKeys(List<Key> keys) {
+        this.keys = keys;
     }
 
-    private boolean isLogFile() {
-        return true;
+    public boolean isIntendedFile() {
+        /* add logic */
+        /* this is temp code */
+        return new Random().nextBoolean();
     }
 }

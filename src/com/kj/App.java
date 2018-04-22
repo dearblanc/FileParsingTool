@@ -1,6 +1,7 @@
 package com.kj;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -10,10 +11,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TooManyListenersException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class App implements JobResultListener {
     private JFrame frame;
@@ -21,6 +24,7 @@ public class App implements JobResultListener {
     private JList<String> list;
     private DefaultListModel<String> model;
     private TaskAllocator worker;
+    private List<KJFile> fileList;
 
     private App(JFrame frame) {
         this.frame = frame;
@@ -103,13 +107,14 @@ public class App implements JobResultListener {
 
                             List<DataFlavor> fileFlavors =
                                     Stream.of(flavors)
+                                            .flatMap(Stream::ofNullable)
                                             .filter(f -> f.equals(DataFlavor.javaFileListFlavor))
-                                            .collect(Collectors.toList());
+                                            .collect(toList());
                             fileFlavors.forEach(
                                     flavor -> {
                                         try {
                                             List<File> list = (List) transferable.getTransferData(flavor);
-                                            list.forEach(file -> model.addElement(file.getAbsolutePath()));
+                                            worker.giveTask(list);
                                         } catch (IOException | UnsupportedFlavorException e) {
                                             e.printStackTrace();
                                         }
@@ -123,6 +128,8 @@ public class App implements JobResultListener {
         model = new DefaultListModel<>();
         list.setModel(model);
         setListLineBorder();
+
+        list.addListSelectionListener((ListSelectionEvent e) -> System.out.println(e.getFirstIndex()));
 
         JScrollPane scrollPene = new JScrollPane(list);
         scrollPene.setBackground(Color.WHITE);
@@ -163,8 +170,7 @@ public class App implements JobResultListener {
         chooser.setMultiSelectionEnabled(true);
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.showOpenDialog(frame);
-        File[] files = chooser.getSelectedFiles();
-        worker.giveTask(files);
+        worker.giveTask(List.of(chooser.getSelectedFiles()));
     }
 
     private void setListLineBorder() {
@@ -179,6 +185,16 @@ public class App implements JobResultListener {
                                                 list, value, index, isSelected, cellHasFocus);
                         listCellRendererComponent.setBorder(
                                 BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+
+                        if (index < fileList.size()) {
+
+                            if (fileList.get(index).getKeys().isEmpty()) {
+                                setBackground(Color.GREEN);
+                            } else {
+                                setBackground(Color.LIGHT_GRAY);
+                            }
+                        }
+
                         return listCellRendererComponent;
                     }
                 });
@@ -186,5 +202,12 @@ public class App implements JobResultListener {
 
     @Override
     public void onJobDone(Thread thread, List<KJFile> files) {
+        model.clear();
+        fileList =
+                files
+                        .stream()
+                        .sorted(Comparator.comparing(KJFile::getFileNameAbsolutePath))
+                        .collect(toList());
+        fileList.forEach(file -> model.addElement(file.getFileNameAbsolutePath()));
     }
 }

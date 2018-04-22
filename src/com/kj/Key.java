@@ -1,15 +1,19 @@
 package com.kj;
 
 class Key {
+    private String id = null;
     private String key1 = null;
     private String key2 = null;
 
-    public Key() {
+    Key() {
     }
 
-    public Key(String value1, String value2) {
-        this.key1 = value1;
-        this.key2 = value2;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getKey1() {
