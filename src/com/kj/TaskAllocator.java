@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 class TaskAllocator implements JobResultListener {
     private static final int maximumThreadCnt = 4;
     private final JobResultListener listener;
+    private AllocThread ownThread = null;
     private final List<Thread> tasks = new ArrayList<>(maximumThreadCnt);
     private final List<File> rawFiles = new ArrayList<>();
     private final List<KJFile> files = new ArrayList<>();
@@ -16,10 +17,34 @@ class TaskAllocator implements JobResultListener {
         this.listener = listener;
     }
 
-    public void giveTask(List<File> files) {
+    class AllocThread extends Thread {
+        private final List<File> files;
+
+        AllocThread(List<File> files) {
+            this.files = files;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            runTask(files);
+        }
+    }
+
+    void giveTask(List<File> files) {
         if (files == null) {
             return;
         }
+
+        if (ownThread != null && ownThread.isAlive()) {
+            ownThread.interrupt();
+        }
+
+        ownThread = new AllocThread(files);
+        ownThread.start();
+    }
+
+    private void runTask(List<File> files) {
         prepareToWork();
         addAllFiles(files);
         doWork();
@@ -38,27 +63,31 @@ class TaskAllocator implements JobResultListener {
     }
 
     private void doWork() {
-        if (rawFiles.size() < maximumThreadCnt) {
-            rawFiles
-                    .stream()
-                    .map(KJFile::new)
-                    .filter(KJFile::isIntendedFile)
-                    .forEach(f -> tasks.add(new JobThread(TaskAllocator.this, List.of(f))));
-        } else {
-            int tasksForEach = rawFiles.size() / maximumThreadCnt;
-            int leftTask = rawFiles.size() % maximumThreadCnt;
+        List<KJFile> files = rawFiles.stream().map(KJFile::new).collect(Collectors.toList());
+        files.removeIf(f -> !f.isLogFile());
 
-            for (int i = 0; i < 4; i++) {
-                List<File> files = rawFiles.subList((i * tasksForEach), ((i + 1) * tasksForEach));
-                if (tasksForEach * 4 + i < rawFiles.size()) {
-                    files.add(rawFiles.get(tasksForEach * 4 + i));
+        if (files.size() < maximumThreadCnt) {
+            files.forEach(
+                    f -> {
+                        Thread thread = new JobThread(TaskAllocator.this, List.of(f));
+                        tasks.add(thread);
+                    });
+        } else {
+            int tasksForEach = files.size() / maximumThreadCnt;
+
+            for (int i = 0; i < maximumThreadCnt; i++) {
+                List<KJFile> allocFiles =
+                        new ArrayList<>(files.subList((i * tasksForEach), ((i + 1) * tasksForEach)));
+                if (tasksForEach * maximumThreadCnt + i < files.size()) {
+                    allocFiles.add(files.get(tasksForEach * maximumThreadCnt + i));
                 }
-                Thread thread =
-                        new JobThread(this, files.stream().map(KJFile::new).collect(Collectors.toList()));
+                Thread thread = new JobThread(TaskAllocator.this, allocFiles);
                 tasks.add(thread);
-                thread.run();
             }
         }
+        files.clear();
+        rawFiles.clear();
+        tasks.forEach(Thread::start);
     }
 
     private void addAllFiles(List<File> files) {
@@ -69,49 +98,23 @@ class TaskAllocator implements JobResultListener {
         if (file == null) {
             return;
         }
-        addAllFiles(getChildDirectories(file));
-        addAllFiles(getChildFiles(file));
-        rawFiles.add(file);
-    }
-
-    private void addFiles(List<File> files) {
-        rawFiles.addAll(files);
-    }
-
-    private List<File> getChildDirectories(File parent) {
-        List<File> files = getChildren(parent);
-        files.removeIf(file -> !file.isDirectory());
-        return files;
-    }
-
-    private List<File> getChildFiles(File parent) {
-        List<File> files = getChildren(parent);
-        files.removeIf(file -> (!file.isFile() || !file.canRead()));
-        return files;
-    }
-
-    private List<File> getChildren(File parent) {
-        List<File> list = new ArrayList<>();
-        if (parent == null) {
-            return list;
+        if (file.isFile()) {
+            rawFiles.add(file);
         }
-        File[] files = parent.listFiles();
-        if (files == null) {
-            return list;
-        }
-        list.addAll(List.of(files));
-        return list;
+        rawFiles.addAll(KJFile.getChildFiles(file));
+        addAllFiles(KJFile.getChildDirectories(file));
     }
 
     @Override
     public void onJobDone(Thread thread, List<KJFile> files) {
         this.files.addAll(files);
-        synchronized (tasks) {
+        boolean isDone = false;
+        synchronized (TaskAllocator.this) {
             tasks.remove(thread);
-
-            if (tasks.isEmpty()) {
-                listener.onJobDone(Thread.currentThread(), this.files);
-            }
+            isDone = tasks.isEmpty();
+        }
+        if (isDone) {
+            listener.onJobDone(Thread.currentThread(), this.files);
         }
     }
 }

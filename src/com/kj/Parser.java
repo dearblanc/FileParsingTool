@@ -1,37 +1,55 @@
 package com.kj;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
-import java.util.Random;
 
 class Parser {
-    private static Random random = new Random();
     private final List<KJFile> files;
+
+    enum STATE {
+        NONE,
+        ADDR,
+        SRC,
+        AFTER_SRC,
+        DST,
+        AFTER_DST,
+        SPI,
+        AFTER_SPI,
+        AUTH,
+        AUTH_ALG,
+        AUTH_VAL,
+        AFTER_AUTH,
+        ENC,
+        ENC_ALG,
+        ENC_VAL
+    }
 
     Parser(List<KJFile> files) {
         this.files = files;
     }
 
-    public void parse() {
-        /* add logic */
+    void parse() {
         for (KJFile file : files) {
-            file.setKeys(getKeyTempCode());
+            parseFile(file);
         }
     }
 
-    private List<Key> getKeyTempCode() {
-        List<Key> keys = new ArrayList<>();
-
-        if (random.nextBoolean()) {
-            int count = random.nextInt(11);
-            for (int i = 0; i < count; i++) {
-                Key key = new Key();
-                key.setId(String.valueOf(random.nextInt()));
-                key.setKey1(String.valueOf(random.nextInt(1000)));
-                key.setKey2(String.valueOf(random.nextInt(1000)));
-                keys.add(key);
-            }
+    private void parseFile(KJFile file) {
+        if (file == null) {
+            return;
         }
-        return keys;
+        String fileName = file.getFileName();
+
+        if (fileName.contains(".log") || fileName.contains(".txt")) {
+            parseMainLog(file);
+        }
+    }
+
+    private void parseMainLog(KJFile file) {
+        File logFile = new File(file.getFileNameAbsolutePath());
+
+        MainLog log = new MainLog();
+        log.parse(logFile);
+        file.setKeys(log.getKeys());
     }
 }

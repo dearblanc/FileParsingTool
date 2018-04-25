@@ -1,34 +1,71 @@
 package com.kj;
 
 class Key {
-    private String id = null;
-    private String key1 = null;
-    private String key2 = null;
+    private IPAddress address;
+    private String spi;
+    private Authentication auth;
+    private Encryption encryption;
 
-    Key() {
+    Key() {}
+
+    String printKey() {
+        String key = null;
+
+        try {
+            key =
+                    "\""
+                            + address.getVersionString()
+                            + "\",\""
+                            + address.getSrc()
+                            + "\",\""
+                            + address.getDest()
+                            + "\",\""
+                            + spi
+                            + "\",\""
+                            + encryption.getAlgorithm()
+                            + "\",\""
+                            + encryption.getKey()
+                            + "\",\""
+                            + auth.getAlgorithm()
+                            + "\",\""
+                            + auth.getKey()
+                            + "\"";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        return key;
     }
 
-    public String getId() {
-        return id;
+    String getSpi() {
+        return spi;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    void setIPAddress(IPAddress ipAddress) {
+        address = ipAddress;
     }
 
-    public String getKey1() {
-        return key1;
+    IPAddress getIPAddress() {
+        return address;
     }
 
-    public void setKey1(String value) {
-        key1 = value;
+    void setSpi(String spi) {
+        this.spi = spi;
     }
 
-    public String getKey2() {
-        return key2;
+    void setAuth(Authentication auth) {
+        this.auth = auth;
     }
 
-    public void setKey2(String value) {
-        key2 = value;
+    Authentication getAuth() {
+        return auth;
+    }
+
+    void setEncryption(Encryption encryption) {
+        this.encryption = encryption;
+    }
+
+    Encryption getEncryption() {
+        return encryption;
     }
 }

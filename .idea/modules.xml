@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/FileParsingTool.iml" filepath="$PROJECT_DIR$/FileParsingTool.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gerrit_.iml" filepath="$PROJECT_DIR$/gerrit_.iml" />
     </modules>
   </component>
 </project>
