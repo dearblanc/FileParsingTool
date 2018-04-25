@@ -60,9 +60,8 @@ public class App implements JobResultListener {
         int width = device.getDisplayMode().getWidth();
         int height = device.getDisplayMode().getHeight();
         frame.setBounds(width / 6, height / 6, width * 2 / 3, height * 2 / 3);
-        frame.setTitle("KJ P-cap parser");
         frame.setIconImage(
-                Toolkit.getDefaultToolkit().createImage("C:\\Users\\user\\Pictures\\Mushroom 1UP.png"));
+                Toolkit.getDefaultToolkit().createImage("....png"));
     }
 
     private void initMainPane() {
