@@ -29,7 +29,7 @@ class KJFile {
         this.keys = keys;
     }
 
-    boolean isLogFile() {
+    boolean isIntendedFile() {
         String name;
         String ext;
         try {
@@ -48,82 +48,11 @@ class KJFile {
             return false;
         }
 
-        if (EtcFiles.getInstance().etc(name)) {
-            return false;
-        }
-
-        if (ext.startsWith("pcap")) {
-            return false;
-        } else if (ext.startsWith("db")) {
-            return false;
-        } else if (ext.startsWith("xml")) {
-            return false;
-        } else if (name.startsWith("event")) {
-            return false;
-        } else if (name.toLowerCase().startsWith("system")) {
-            return false;
-        } else if (name.startsWith("pstore")) {
-            return false;
-        } else if (name.startsWith("tombstone")) {
-            return false;
-        } else if (name.startsWith("dump")) {
-            return false;
-        } else if (name.startsWith("storage")) {
-            return false;
-        } else if (name.startsWith("cnss")) {
-            return false;
-        } else if (name.startsWith("platform")) {
-            return false;
-        } else if (name.startsWith("host")) {
-            return false;
-        } else if (name.startsWith("ramoops")) {
-            return false;
-        } else if (name.startsWith("dropbox")) {
-            return false;
-        }
+        // add logic
 
         return true;
     }
 
-    private static class EtcFiles {
-        private static EtcFiles instance = null;
-        private String[] blackList =
-                new String[] {
-                    "bugreport-traces",
-                    "traces",
-                    "events",
-                    "kernel",
-                    "matics",
-                    "modem_debug_info",
-                    "packet",
-                    "radio",
-                    "system",
-                    "memory",
-                    "power",
-                    "fg",
-                    "crash"
-                };
-
-        static EtcFiles getInstance() {
-            if (instance == null) {
-                instance = new EtcFiles();
-            }
-
-            return instance;
-        }
-
-        private EtcFiles() {
-            init();
-        }
-
-        boolean etc(String fileName) {
-            return Arrays.binarySearch(blackList, fileName) >= 0;
-        }
-
-        private void init() {
-            Arrays.sort(blackList);
-        }
-    }
 
     String getFileName() {
         String[] splitToken;
