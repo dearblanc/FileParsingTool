@@ -64,7 +64,7 @@ class TaskAllocator implements JobResultListener {
 
     private void doWork() {
         List<KJFile> files = rawFiles.stream().map(KJFile::new).collect(Collectors.toList());
-        files.removeIf(f -> !f.isLogFile());
+        files.removeIf(f -> !f.isIntendedFile());
 
         if (files.size() < maximumThreadCnt) {
             files.forEach(
