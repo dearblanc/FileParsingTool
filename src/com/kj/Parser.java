@@ -40,15 +40,13 @@ class Parser {
         }
         String fileName = file.getFileName();
 
-        if (fileName.contains(".log") || fileName.contains(".txt")) {
-            parseMainLog(file);
-        }
+        // add logic
     }
 
-    private void parseMainLog(KJFile file) {
+    private void parseImpl(KJFile file) {
         File logFile = new File(file.getFileNameAbsolutePath());
 
-        MainLog log = new MainLog();
+        // add logic
         log.parse(logFile);
         file.setKeys(log.getKeys());
     }
