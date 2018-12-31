@@ -1,11 +1,7 @@
 package com.kj;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
@@ -44,17 +40,10 @@ class KJFile {
             return false;
         }
 
-        if (name == null || ext == null) {
-            return false;
-        }
-
-        // add logic
-
-        return true;
+        return name != null && ext != null; // add logic
     }
 
-
-    String getFileName() {
+    private String getFileName() {
         String[] splitToken;
         try {
             splitToken = fileName.split("\\\\");
@@ -65,20 +54,8 @@ class KJFile {
         return splitToken[splitToken.length - 1];
     }
 
-    static BufferedReader openFileReader(File file) {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return reader;
-    }
-
-    static List<File> getChildDirectories(File parent) {
-        List<File> files = getChildren(parent);
-        files.removeIf(file -> !file.isDirectory());
-        return files;
+    long getFileSize() {
+        return new File(fileName).length();
     }
 
     static List<File> getChildFiles(File parent) {

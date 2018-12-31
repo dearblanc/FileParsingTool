@@ -1,10 +1,6 @@
 package com.kj;
 
-import java.io.File;
-import java.util.List;
-
 class Parser {
-    private final List<KJFile> files;
 
     enum STATE {
         NONE,
@@ -24,30 +20,9 @@ class Parser {
         ENC_VAL
     }
 
-    Parser(List<KJFile> files) {
-        this.files = files;
-    }
-
-    void parse() {
-        for (KJFile file : files) {
-            parseFile(file);
-        }
-    }
-
-    private void parseFile(KJFile file) {
-        if (file == null) {
-            return;
-        }
-        String fileName = file.getFileName();
-
-        // add logic
-    }
-
-    private void parseImpl(KJFile file) {
-        File logFile = new File(file.getFileNameAbsolutePath());
-
-        // add logic
-        log.parse(logFile);
-        file.setKeys(log.getKeys());
+    KJFile parse(KJFile file) {
+        KJLog log = new KJLog();
+        log.parse(file);
+        return file;
     }
 }

@@ -10,36 +10,28 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.TooManyListenersException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static java.awt.Font.BOLD;
 import static java.util.stream.Collectors.toList;
 
-public class App implements JobResultListener {
-    private JFrame frame;
+public class App {
+    private final JFrame frame;
     private JPanel mainPane;
     private JList<String> list;
     private DefaultListModel<String> model;
-    private TaskAllocator worker;
     private List<KJFile> fileList;
 
     private App(JFrame frame) {
         this.frame = frame;
-        init();
-
-        worker = new TaskAllocator(this);
+        SwingUtilities.invokeLater(this::initGUI);
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         new App(new JFrame("KJ p-cap Parser"));
-    }
-
-    private void init() {
-        initGUI();
     }
 
     private void initGUI() {
@@ -60,8 +52,7 @@ public class App implements JobResultListener {
         int width = device.getDisplayMode().getWidth();
         int height = device.getDisplayMode().getHeight();
         frame.setBounds(width / 6, height / 6, width * 2 / 3, height * 2 / 3);
-        frame.setIconImage(
-                Toolkit.getDefaultToolkit().createImage("....png"));
+        frame.setIconImage(Toolkit.getDefaultToolkit().createImage("....png"));
     }
 
     private void initMainPane() {
@@ -101,7 +92,6 @@ public class App implements JobResultListener {
 
                         @Override
                         public void drop(DropTargetDropEvent dtde) {
-                            model.clear();
                             dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                             Transferable transferable = dtde.getTransferable();
                             DataFlavor[] flavors = transferable.getTransferDataFlavors();
@@ -169,6 +159,7 @@ public class App implements JobResultListener {
     }
 
     private void openWaitingDialog(List<File> list) {
+        model.clear();
         JDialog dlgProgress =
                 new JDialog(
                         frame,
@@ -177,10 +168,10 @@ public class App implements JobResultListener {
         JLabel lblStatus =
                 new JLabel(
                         "Working..."); // this is just a label in which you can indicate the state
-                                       // of the processing
+        // of the processing
 
         JProgressBar pbProgress = new JProgressBar(0, 100);
-        pbProgress.setIndeterminate(true); // we'll use an indeterminate progress bar
+        // pbProgress.setIndeterminate(true); // we'll use an indeterminate progress bar
 
         dlgProgress.add(BorderLayout.NORTH, lblStatus);
         dlgProgress.add(BorderLayout.CENTER, pbProgress);
@@ -192,23 +183,74 @@ public class App implements JobResultListener {
                 300,
                 90);
 
-        SwingWorker<Void, Void> sw =
-                new SwingWorker<Void, Void>() {
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        worker.giveTask(list);
-                        return null;
-                    }
+        DragAndDropEventProcessor processor =
+                new DragAndDropEventProcessor(dlgProgress, pbProgress, list);
+        pbProgress.setValue(0);
+        pbProgress.setEnabled(true);
+        processor.execute();
+        dlgProgress.setVisible(true);
+    }
 
-                    @Override
-                    protected void done() {
-                        dlgProgress.dispose(); // close the modal dialog
-                    }
-                };
+    private class DragAndDropEventProcessor extends SwingWorker implements TaskNotifier {
+        final JDialog dlgProgress;
+        final JProgressBar progressBar;
+        final List<File> list;
+        final List<KJFile> parsedList = Collections.synchronizedList(new ArrayList<>());
+        AtomicLong accum = new AtomicLong(0L);
+        long totalSize = 0L;
 
-        sw.execute(); // this will start the processing on a separate thread
-        dlgProgress.setVisible(
-                true); // this will block user input as long as the processing task is working
+        DragAndDropEventProcessor(JDialog dlgProgress, JProgressBar progressBar, List<File> list) {
+            this.dlgProgress = dlgProgress;
+            this.list = list;
+            this.progressBar = progressBar;
+        }
+
+        @Override
+        protected Object doInBackground() {
+            FileTraversal traversal = new FileTraversal();
+            traversal.loadFiles(list);
+            totalSize = traversal.getTotalFileSize();
+            System.out.println("totalsize : " + totalSize);
+
+            List<KJFile> sourceFiles = traversal.getAllFiles();
+            SharedFileList.getInstance().addAll(sourceFiles);
+
+            final int nThreads = Runtime.getRuntime().availableProcessors() + 1;
+            final ParsingTask[] tasks = new ParsingTask[nThreads];
+            for (int i = 0; i < nThreads; i++) {
+                (tasks[i] = new ParsingTask(this)).start();
+            }
+            for (ParsingTask task : tasks) {
+                try {
+                    task.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            save(parsedList);
+
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            dlgProgress.dispose(); // close the modal dialog
+        }
+
+        @Override
+        public void onParsed(KJFile file) {
+            new Thread(
+                            () -> {
+                                parsedList.add(file);
+                                accum.addAndGet(file.getFileSize());
+                                double quote = (double) (accum.get()) / totalSize;
+                                int rate = (int) (quote * 100);
+                                System.out.println("progress(" + rate + ")");
+                                SwingUtilities.invokeLater(() -> progressBar.setValue(rate));
+                            })
+                    .start();
+        }
     }
 
     private void initBottomButton() {
@@ -312,14 +354,17 @@ public class App implements JobResultListener {
         childframe.setVisible(true);
     }
 
-    @Override
-    public void onJobDone(Thread thread, List<KJFile> files) {
-        model.clear();
+    private void save(List<KJFile> files) {
         fileList =
                 files.stream()
                         .sorted(Comparator.comparing(KJFile::getFileNameAbsolutePath))
                         .collect(toList());
-        fileList.forEach(file -> model.addElement(file.getFileNameAbsolutePath()));
-        WireShark.saveKeys(fileList);
+        SwingUtilities.invokeLater(
+                () -> {
+                    for (KJFile f : fileList) {
+                        model.addElement(f.getFileNameAbsolutePath());
+                    }
+                });
+        // WireShark.saveKeys(fileList);
     }
 }
