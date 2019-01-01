@@ -12,6 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -23,6 +27,8 @@ public class App {
     private JPanel mainPane;
     private JList<String> list;
     private DefaultListModel<String> model;
+    private static final int NTHREAD = Runtime.getRuntime().availableProcessors() + 1;
+    private static final ExecutorService exec = Executors.newFixedThreadPool(NTHREAD);
     private List<KJFile> fileList;
 
     private App(JFrame frame) {
@@ -199,7 +205,7 @@ public class App {
         dlgProgress.setVisible(true);
     }
 
-    private class DragAndDropEventProcessor extends SwingWorker implements TaskNotifier {
+    private class DragAndDropEventProcessor extends SwingWorker {
         final JDialog dlgProgress;
         final JProgressBar progressBar;
         final List<File> list;
@@ -221,34 +227,36 @@ public class App {
             System.out.println("totalsize : " + totalSize);
 
             final int nThreads = Runtime.getRuntime().availableProcessors() + 1;
-            final ParsingTask[] tasks = new ParsingTask[nThreads];
+            //final List<Callable> tasks = new Callable[nThreads];
+            final List<Callable<Void>> tasks = new ArrayList<>(nThreads);
             final List<KJFile> sourceFiles = traversal.getAllFiles();
             final int totalCount = sourceFiles.size();
 
             if (totalCount < nThreads) {
                 for (int i = 0; i < totalCount; i++) {
-                    tasks[i] = new ParsingTask(this, List.of(sourceFiles.get(i)));
+                    tasks.add(i, createTask(List.of(sourceFiles.get(i))));
                 }
                 for (int i = totalCount; i < nThreads; i++) {
-                    tasks[i] = new ParsingTask(this, Collections.emptyList());
+                    tasks.add(i, createTask(Collections.emptyList()));
                 }
             } else {
                 int quote = (totalCount / nThreads) + 1;
                 for (int i = 0; i < nThreads - 1; i++) {
-                    tasks[i] = new ParsingTask(this, sourceFiles.subList(i * quote, (i + 1) * quote - 1));
+                    tasks.add(i, createTask(sourceFiles.subList(i * quote, (i + 1) * quote - 1)));
                 }
-                tasks[nThreads - 1] = new ParsingTask(this, sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1));
+                tasks.add(nThreads - 1, createTask(sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1)));
             }
 
-            for (ParsingTask task : tasks) {
-                task.start();
+            List<Future<Void>> futures;
+            try {
+                futures = exec.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return null;
             }
-            for (ParsingTask task : tasks) {
-                try {
-                    task.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
+            for (int i = 0; i < NTHREAD; i++) {
+                futures.get(i);
             }
 
             save(parsedList);
@@ -261,14 +269,24 @@ public class App {
             dlgProgress.dispose(); // close the modal dialog
         }
 
-        @Override
-        public void onParsed(KJFile file) {
+        private void onParsed(KJFile file) {
             parsedList.add(file);
             accum.addAndGet(file.getFileSize());
             double quote = (double) (accum.get()) / totalSize;
             int rate = (int) (quote * 100);
             System.out.println("progress(" + rate + ")");
             SwingUtilities.invokeLater(() -> progressBar.setValue(rate));
+        }
+
+        private Callable<Void> createTask(List<KJFile> list) {
+            return () -> {
+                Parser parser = new Parser();
+                for (KJFile file : list) {
+                    parser.parse(file);
+                    onParsed(file);
+                }
+                return null;
+            };
         }
     }
 
