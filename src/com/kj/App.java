@@ -79,16 +79,20 @@ public class App {
             target.addDropTargetListener(
                     new DropTargetListener() {
                         @Override
-                        public void dragEnter(DropTargetDragEvent dtde) {}
+                        public void dragEnter(DropTargetDragEvent dtde) {
+                        }
 
                         @Override
-                        public void dragOver(DropTargetDragEvent dtde) {}
+                        public void dragOver(DropTargetDragEvent dtde) {
+                        }
 
                         @Override
-                        public void dropActionChanged(DropTargetDragEvent dtde) {}
+                        public void dropActionChanged(DropTargetDragEvent dtde) {
+                        }
 
                         @Override
-                        public void dragExit(DropTargetEvent dte) {}
+                        public void dragExit(DropTargetEvent dte) {
+                        }
 
                         @Override
                         public void drop(DropTargetDropEvent dtde) {
@@ -136,16 +140,20 @@ public class App {
                     }
 
                     @Override
-                    public void mouseEntered(MouseEvent arg0) {}
+                    public void mouseEntered(MouseEvent arg0) {
+                    }
 
                     @Override
-                    public void mouseExited(MouseEvent arg0) {}
+                    public void mouseExited(MouseEvent arg0) {
+                    }
 
                     @Override
-                    public void mousePressed(MouseEvent arg0) {}
+                    public void mousePressed(MouseEvent arg0) {
+                    }
 
                     @Override
-                    public void mouseReleased(MouseEvent arg0) {}
+                    public void mouseReleased(MouseEvent arg0) {
+                    }
                 });
 
         JScrollPane scrollPene = new JScrollPane(list);
@@ -207,18 +215,33 @@ public class App {
 
         @Override
         protected Object doInBackground() {
-            FileTraversal traversal = new FileTraversal();
+            final FileTraversal traversal = new FileTraversal();
             traversal.loadFiles(list);
             totalSize = traversal.getTotalFileSize();
             System.out.println("totalsize : " + totalSize);
 
-            List<KJFile> sourceFiles = traversal.getAllFiles();
-            SharedFileList.getInstance().addAll(sourceFiles);
-
             final int nThreads = Runtime.getRuntime().availableProcessors() + 1;
             final ParsingTask[] tasks = new ParsingTask[nThreads];
-            for (int i = 0; i < nThreads; i++) {
-                (tasks[i] = new ParsingTask(this)).start();
+            final List<KJFile> sourceFiles = traversal.getAllFiles();
+            final int totalCount = sourceFiles.size();
+
+            if (totalCount < nThreads) {
+                for (int i = 0; i < totalCount; i++) {
+                    tasks[i] = new ParsingTask(this, List.of(sourceFiles.get(i)));
+                }
+                for (int i = totalCount; i < nThreads; i++) {
+                    tasks[i] = new ParsingTask(this, Collections.emptyList());
+                }
+            } else {
+                int quote = (totalCount / nThreads) + 1;
+                for (int i = 0; i < nThreads - 1; i++) {
+                    tasks[i] = new ParsingTask(this, sourceFiles.subList(i * quote, (i + 1) * quote - 1));
+                }
+                tasks[nThreads - 1] = new ParsingTask(this, sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1));
+            }
+
+            for (ParsingTask task : tasks) {
+                task.start();
             }
             for (ParsingTask task : tasks) {
                 try {
@@ -240,16 +263,12 @@ public class App {
 
         @Override
         public void onParsed(KJFile file) {
-            new Thread(
-                            () -> {
-                                parsedList.add(file);
-                                accum.addAndGet(file.getFileSize());
-                                double quote = (double) (accum.get()) / totalSize;
-                                int rate = (int) (quote * 100);
-                                System.out.println("progress(" + rate + ")");
-                                SwingUtilities.invokeLater(() -> progressBar.setValue(rate));
-                            })
-                    .start();
+            parsedList.add(file);
+            accum.addAndGet(file.getFileSize());
+            double quote = (double) (accum.get()) / totalSize;
+            int rate = (int) (quote * 100);
+            System.out.println("progress(" + rate + ")");
+            SwingUtilities.invokeLater(() -> progressBar.setValue(rate));
         }
     }
 
@@ -259,10 +278,12 @@ public class App {
         buttonBottom.addMouseListener(
                 new MouseListener() {
                     @Override
-                    public void mouseClicked(MouseEvent e) {}
+                    public void mouseClicked(MouseEvent e) {
+                    }
 
                     @Override
-                    public void mousePressed(MouseEvent e) {}
+                    public void mousePressed(MouseEvent e) {
+                    }
 
                     @Override
                     public void mouseReleased(MouseEvent e) {
@@ -270,10 +291,12 @@ public class App {
                     }
 
                     @Override
-                    public void mouseEntered(MouseEvent e) {}
+                    public void mouseEntered(MouseEvent e) {
+                    }
 
                     @Override
-                    public void mouseExited(MouseEvent e) {}
+                    public void mouseExited(MouseEvent e) {
+                    }
                 });
     }
 

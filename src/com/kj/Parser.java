@@ -20,9 +20,8 @@ class Parser {
         ENC_VAL
     }
 
-    KJFile parse(KJFile file) {
+    void parse(KJFile file) {
         KJLog log = new KJLog();
         log.parse(file);
-        return file;
     }
 }

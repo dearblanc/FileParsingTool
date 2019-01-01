@@ -1,19 +1,21 @@
 package com.kj;
 
+import java.util.List;
+
 class ParsingTask extends Thread {
     private final TaskNotifier notifier;
+    private final List<KJFile> files;
 
-    ParsingTask(TaskNotifier notifier) {
+    ParsingTask(TaskNotifier notifier, List<KJFile> files) {
         this.notifier = notifier;
+        this.files = files;
     }
 
     public void run() {
-        KJFile file = SharedFileList.getInstance().take();
         Parser parser = new Parser();
-        while (file != null) {
+        for (KJFile file : files) {
             parser.parse(file);
             notifier.onParsed(file);
-            file = SharedFileList.getInstance().take();
         }
     }
 }
