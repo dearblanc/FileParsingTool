@@ -208,45 +208,44 @@ public class App {
     private class DragAndDropEventProcessor extends SwingWorker {
         private final JDialog dlgProgress;
         private final JProgressBar progressBar;
-        private final List<File> list;
-        private final List<KJFile> parsedList = Collections.synchronizedList(new ArrayList<>());
-        private AtomicLong accum = new AtomicLong(0L);
-        private long totalSize = 0L;
+        private final List<File> givenFileList;
+
+        private final List<KJFile> processedFileList = Collections.synchronizedList(new ArrayList<>());
+        private long totalSizeOfFiles = 0L;
+        private AtomicLong totalAmountOfProcess = new AtomicLong(0L);
         private CountDownLatch doneSignal = new CountDownLatch(NTHREAD);
-        private final int TIMEOUT = 10;
+        private static final int TIMEOUT = 10;
 
         DragAndDropEventProcessor(JDialog dlgProgress, JProgressBar progressBar, List<File> list) {
             this.dlgProgress = dlgProgress;
-            this.list = list;
             this.progressBar = progressBar;
+            this.givenFileList = list;
         }
 
         @Override
         protected Object doInBackground() {
             final FileTraversal traversal = new FileTraversal();
-            traversal.loadFiles(list);
-            totalSize = traversal.totalFileSize();
-            System.out.println("totalsize : " + totalSize);
+            traversal.loadFiles(givenFileList);
+            totalSizeOfFiles = traversal.totalFileSize();
+            System.out.println("totalsize : " + totalSizeOfFiles);
 
-            final int nThreads = Runtime.getRuntime().availableProcessors() + 1;
-            //final List<Callable> tasks = new Callable[nThreads];
-            final Runnable[] tasks = new Runnable[NTHREAD];
             final List<KJFile> sourceFiles = traversal.retrieveAllFiles();
             final int totalCount = sourceFiles.size();
+            final Runnable[] tasks = new Runnable[NTHREAD];
 
-            if (totalCount < nThreads) {
+            if (totalCount < NTHREAD) {
                 for (int i = 0; i < totalCount; i++) {
                     tasks[i] = createTask(List.of(sourceFiles.get(i)));
                 }
-                for (int i = totalCount; i < nThreads; i++) {
+                for (int i = totalCount; i < NTHREAD; i++) {
                     tasks[i] = createTask(Collections.emptyList());
                 }
             } else {
-                int quote = (totalCount / nThreads) + 1;
-                for (int i = 0; i < nThreads - 1; i++) {
-                    tasks[i] = createTask(sourceFiles.subList(i * quote, (i + 1) * quote - 1));
+                int quotient = (totalCount / NTHREAD) + 1;
+                for (int i = 0; i < NTHREAD - 1; i++) {
+                    tasks[i] = createTask(sourceFiles.subList(i * quotient, (i + 1) * quotient - 1));
                 }
-                tasks[nThreads - 1] = createTask(sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1));
+                tasks[NTHREAD - 1] = createTask(sourceFiles.subList((NTHREAD - 1) * quotient, sourceFiles.size() - 1));
             }
 
             for (Runnable r : tasks) {
@@ -260,7 +259,7 @@ public class App {
                 return null;
             }
 
-            save(parsedList);
+            save(processedFileList);
 
             return null;
         }
@@ -271,9 +270,9 @@ public class App {
         }
 
         private void onParsed(KJFile file) {
-            parsedList.add(file);
-            accum.addAndGet(file.getFileSize());
-            double quote = (double) (accum.get()) / totalSize;
+            processedFileList.add(file);
+            totalAmountOfProcess.addAndGet(file.getFileSize());
+            double quote = (double) (totalAmountOfProcess.get()) / totalSizeOfFiles;
             int rate = (int) (quote * 100);
             System.out.println("progress(" + rate + ")");
             SwingUtilities.invokeLater(() -> progressBar.setValue(rate));

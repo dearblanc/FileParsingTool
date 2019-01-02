@@ -3,15 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="6e157682-c4b5-4df0-8f70-c4d14ca9e9e3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$DragAndDropEventProcessor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App$DragAndDropEventProcessor.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/App.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/FileTraversal.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/FileTraversal.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/KJFile.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/FileParsingTool/com/kj/KJFile.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/com/kj/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/kj/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/kj/FileTraversal.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/kj/FileTraversal.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/kj/KJFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/kj/KJFile.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,10 +17,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/kj/App.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
-              <caret line="215" column="10" selection-start-line="215" selection-start-column="10" selection-end-line="215" selection-end-column="10" />
+            <state relative-caret-position="184">
+              <caret line="229" column="42" selection-start-line="229" selection-start-column="42" selection-end-line="229" selection-end-column="42" />
               <folding>
-                <element signature="e#10109#10110#0" expanded="true" />
+                <element signature="e#9971#9972#0" expanded="true" />
+                <element signature="e#10042#10043#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -71,6 +64,23 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope">
+        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
+          <expand>
+            <path>
+              <item name="FileParsingTool" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="FileParsingTool" type="2674bda8:ScopeViewTreeModel$GroupNode" />
+            </path>
+            <path>
+              <item name="FileParsingTool" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="FileParsingTool" type="2674bda8:ScopeViewTreeModel$GroupNode" />
+              <item name=".idea" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -93,27 +103,10 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope">
-        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
-          <expand>
-            <path>
-              <item name="FileParsingTool" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="FileParsingTool" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-            </path>
-            <path>
-              <item name="FileParsingTool" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="FileParsingTool" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-              <item name=".idea" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1546404414355" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1546404483081" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -187,13 +180,21 @@
       <option name="project" value="LOCAL" />
       <updated>1546346048445</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Introduce CountDouwnLatch...">
+      <created>1546404463528</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1546404463528</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25973153" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26308724" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -225,7 +226,8 @@
     <MESSAGE value="Progressbar..." />
     <MESSAGE value="no to use synchronous obj" />
     <MESSAGE value="Introduce ExecutorService" />
-    <option name="LAST_COMMIT_MESSAGE" value="Introduce ExecutorService" />
+    <MESSAGE value="Introduce CountDouwnLatch..." />
+    <option name="LAST_COMMIT_MESSAGE" value="Introduce CountDouwnLatch..." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -309,10 +311,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/kj/App.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="215" column="10" selection-start-line="215" selection-start-column="10" selection-end-line="215" selection-end-column="10" />
+        <state relative-caret-position="184">
+          <caret line="229" column="42" selection-start-line="229" selection-start-column="42" selection-end-line="229" selection-end-column="42" />
           <folding>
-            <element signature="e#10109#10110#0" expanded="true" />
+            <element signature="e#9971#9972#0" expanded="true" />
+            <element signature="e#10042#10043#0" expanded="true" />
           </folding>
         </state>
       </provider>
