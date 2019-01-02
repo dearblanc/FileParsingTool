@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -28,7 +28,7 @@ public class App {
     private JList<String> list;
     private DefaultListModel<String> model;
     private static final int NTHREAD = Runtime.getRuntime().availableProcessors() + 1;
-    private static final ExecutorService exec = Executors.newFixedThreadPool(NTHREAD);
+    private static final Executor exec = Executors.newFixedThreadPool(NTHREAD);
     private List<KJFile> fileList;
 
     private App(JFrame frame) {
@@ -206,12 +206,14 @@ public class App {
     }
 
     private class DragAndDropEventProcessor extends SwingWorker {
-        final JDialog dlgProgress;
-        final JProgressBar progressBar;
-        final List<File> list;
-        final List<KJFile> parsedList = Collections.synchronizedList(new ArrayList<>());
-        AtomicLong accum = new AtomicLong(0L);
-        long totalSize = 0L;
+        private final JDialog dlgProgress;
+        private final JProgressBar progressBar;
+        private final List<File> list;
+        private final List<KJFile> parsedList = Collections.synchronizedList(new ArrayList<>());
+        private AtomicLong accum = new AtomicLong(0L);
+        private long totalSize = 0L;
+        private CountDownLatch doneSignal = new CountDownLatch(NTHREAD);
+        private final int TIMEOUT = 10;
 
         DragAndDropEventProcessor(JDialog dlgProgress, JProgressBar progressBar, List<File> list) {
             this.dlgProgress = dlgProgress;
@@ -223,40 +225,39 @@ public class App {
         protected Object doInBackground() {
             final FileTraversal traversal = new FileTraversal();
             traversal.loadFiles(list);
-            totalSize = traversal.getTotalFileSize();
+            totalSize = traversal.totalFileSize();
             System.out.println("totalsize : " + totalSize);
 
             final int nThreads = Runtime.getRuntime().availableProcessors() + 1;
             //final List<Callable> tasks = new Callable[nThreads];
-            final List<Callable<Void>> tasks = new ArrayList<>(nThreads);
-            final List<KJFile> sourceFiles = traversal.getAllFiles();
+            final Runnable[] tasks = new Runnable[NTHREAD];
+            final List<KJFile> sourceFiles = traversal.retrieveAllFiles();
             final int totalCount = sourceFiles.size();
 
             if (totalCount < nThreads) {
                 for (int i = 0; i < totalCount; i++) {
-                    tasks.add(i, createTask(List.of(sourceFiles.get(i))));
+                    tasks[i] = createTask(List.of(sourceFiles.get(i)));
                 }
                 for (int i = totalCount; i < nThreads; i++) {
-                    tasks.add(i, createTask(Collections.emptyList()));
+                    tasks[i] = createTask(Collections.emptyList());
                 }
             } else {
                 int quote = (totalCount / nThreads) + 1;
                 for (int i = 0; i < nThreads - 1; i++) {
-                    tasks.add(i, createTask(sourceFiles.subList(i * quote, (i + 1) * quote - 1)));
+                    tasks[i] = createTask(sourceFiles.subList(i * quote, (i + 1) * quote - 1));
                 }
-                tasks.add(nThreads - 1, createTask(sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1)));
+                tasks[nThreads - 1] = createTask(sourceFiles.subList((nThreads - 1) * quote, sourceFiles.size() - 1));
             }
 
-            List<Future<Void>> futures;
+            for (Runnable r : tasks) {
+                exec.execute(r);
+            }
+
             try {
-                futures = exec.invokeAll(tasks);
+                doneSignal.await(TIMEOUT, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return null;
-            }
-
-            for (int i = 0; i < NTHREAD; i++) {
-                futures.get(i);
             }
 
             save(parsedList);
@@ -278,14 +279,14 @@ public class App {
             SwingUtilities.invokeLater(() -> progressBar.setValue(rate));
         }
 
-        private Callable<Void> createTask(List<KJFile> list) {
+        private Runnable createTask(List<KJFile> list) {
             return () -> {
                 Parser parser = new Parser();
                 for (KJFile file : list) {
                     parser.parse(file);
                     onParsed(file);
                 }
-                return null;
+                doneSignal.countDown();
             };
         }
     }

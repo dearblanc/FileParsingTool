@@ -58,17 +58,20 @@ class KJFile {
         return new File(fileName).length();
     }
 
-    static List<File> getChildFiles(File parent) {
+    static List<File> getFiles(File parent) {
         List<File> files = getChildren(parent);
         files.removeIf(file -> (!file.isFile() || !file.canRead()));
         return files;
     }
 
+    static List<File> getDirectories(File parent) {
+        List<File> files = getChildren(parent);
+        files.removeIf(file -> (!file.isDirectory()));
+        return files;
+    }
+
     private static List<File> getChildren(File parent) {
         List<File> list = new ArrayList<>();
-        if (parent == null) {
-            return list;
-        }
         File[] files = parent.listFiles();
         if (files == null) {
             return list;
