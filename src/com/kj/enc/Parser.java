@@ -1,6 +1,9 @@
-package com.kj;
+package com.kj.enc;
 
-class Parser {
+import com.kj.KJFile;
+import com.kj.temp.KJLog;
+
+public class Parser {
 
     enum STATE {
         NONE,
@@ -20,7 +23,7 @@ class Parser {
         ENC_VAL
     }
 
-    void parse(KJFile file) {
+    public void parse(KJFile file) {
         KJLog log = new KJLog();
         log.parse(file);
     }

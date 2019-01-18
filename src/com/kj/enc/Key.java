@@ -1,14 +1,14 @@
-package com.kj;
+package com.kj.enc;
 
-class Key {
+public class Key {
     private IPAddress address;
     private String spi;
     private Authentication auth;
     private Encryption encryption;
 
-    Key() {}
+    public Key() {}
 
-    String printKey() {
+    public String printKey() {
         String key = null;
 
         try {
@@ -37,7 +37,7 @@ class Key {
         return key;
     }
 
-    String getSpi() {
+    public String getSpi() {
         return spi;
     }
 

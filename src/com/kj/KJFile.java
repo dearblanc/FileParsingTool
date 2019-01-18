@@ -1,11 +1,13 @@
 package com.kj;
 
+import com.kj.enc.Key;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
-class KJFile {
+public class KJFile {
     private final String fileName;
     private List<Key> keys = new ArrayList<>();
 
@@ -13,15 +15,15 @@ class KJFile {
         fileName = file.getAbsolutePath();
     }
 
-    String getFileNameAbsolutePath() {
+    public String getFileNameAbsolutePath() {
         return fileName;
     }
 
-    List<Key> getKeys() {
+    public List<Key> getKeys() {
         return keys;
     }
 
-    void setKeys(List<Key> keys) {
+    public void setKeys(List<Key> keys) {
         this.keys = keys;
     }
 

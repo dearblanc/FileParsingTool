@@ -1,4 +1,4 @@
-package com.kj;
+package com.kj.enc;
 
 import java.util.StringTokenizer;
 

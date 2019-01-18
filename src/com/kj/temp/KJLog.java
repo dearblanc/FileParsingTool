@@ -1,4 +1,7 @@
-package com.kj;
+package com.kj.temp;
+
+import com.kj.KJFile;
+import com.kj.enc.Key;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -6,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-class KJLog {
+public class KJLog {
     private List<Key> keys = new ArrayList<>();
 
-    void parse(KJFile file) {
+    public void parse(KJFile file) {
         file.setKeys(keys);
 
         try (Scanner scanner = new Scanner(new FileInputStream(file.getFileNameAbsolutePath()))) {

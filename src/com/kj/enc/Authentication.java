@@ -1,4 +1,6 @@
-package com.kj;
+package com.kj.enc;
+
+import com.kj.WireShark;
 
 import java.util.IllegalFormatException;
 import java.util.StringTokenizer;

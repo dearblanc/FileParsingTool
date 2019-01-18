@@ -1,5 +1,7 @@
 package com.kj;
 
+import com.kj.enc.Key;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -7,12 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class WireShark {
+public class WireShark {
     private static final Object mFileLock = new Object();
 
     WireShark() {}
 
-    static String adaptAuthAlgorithm(String src) {
+    public static String adaptAuthAlgorithm(String src) {
         String algorithm = null;
         if (src.equalsIgnoreCase("hmac-sha1") || src.equalsIgnoreCase("hmac(sha1)")) {
             algorithm = "HMAC-SHA-1-96 [RFC2404]";
@@ -32,7 +34,7 @@ class WireShark {
         return algorithm;
     }
 
-    static String adaptEncryptionAlgorithm(String src) {
+    public static String adaptEncryptionAlgorithm(String src) {
         String algorithm = null;
 
         if (src.equalsIgnoreCase("aes-cbc") || src.equalsIgnoreCase("cbc(aes)")) {
