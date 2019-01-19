@@ -1,6 +1,6 @@
 package com.kj.ui;
 
-import com.kj.DnDListFileProcessor;
+import com.kj.ListFileProcessor;
 import com.kj.KJFile;
 import com.kj.enc.Key;
 
@@ -73,7 +73,7 @@ class ScrollPane {
                                         }
                                     });
                             if (!list.isEmpty()) {
-                                DnDListFileProcessor.instance().process(scrollPane.getTopLevelAncestor(), list);
+                                ListFileProcessor.instance().process(scrollPane.getTopLevelAncestor(), list);
                             }
                         }
                     });
@@ -82,7 +82,7 @@ class ScrollPane {
         }
 
         list.setModel(model);
-        DnDListFileProcessor.instance().setListDataModel(model);
+        ListFileProcessor.instance().setListDataModel(model);
         setListLineBorder();
 
         list.addMouseListener(
@@ -134,7 +134,7 @@ class ScrollPane {
                         listCellRendererComponent.setBorder(
                                 BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
 
-                        List<KJFile> fileList = DnDListFileProcessor.instance().getProcessedFileList();
+                        List<KJFile> fileList = ListFileProcessor.instance().getProcessedFileList();
                         if (index < fileList.size()) {
 
                             if (!fileList.get(index).getKeys().isEmpty()) {
@@ -158,7 +158,7 @@ class ScrollPane {
     }
 
     private void showKeysGUI(int index) {
-        KJFile file = DnDListFileProcessor.instance().getProcessedFileList().get(index);
+        KJFile file = ListFileProcessor.instance().getProcessedFileList().get(index);
         List<Key> keys = file.getKeys();
         if (keys.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No key exists in the selected file.");

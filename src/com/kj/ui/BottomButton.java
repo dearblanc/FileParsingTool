@@ -1,6 +1,6 @@
 package com.kj.ui;
 
-import com.kj.DnDListFileProcessor;
+import com.kj.ListFileProcessor;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -42,7 +42,7 @@ class BottomButton {
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.showOpenDialog(buttonBottom.getTopLevelAncestor());
 
-        DnDListFileProcessor.instance().process(buttonBottom.getTopLevelAncestor(), List.of(chooser.getSelectedFiles()));
+        ListFileProcessor.instance().process(buttonBottom.getTopLevelAncestor(), List.of(chooser.getSelectedFiles()));
     }
 
     void addTo(JPanel mainPane, Object constraints) {

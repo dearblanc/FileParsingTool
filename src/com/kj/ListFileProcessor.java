@@ -15,19 +15,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class DnDListFileProcessor {
-    private static final DnDListFileProcessor instance = new DnDListFileProcessor();
+public class ListFileProcessor {
+    private static final ListFileProcessor instance = new ListFileProcessor();
     private static final int NTHREAD = Runtime.getRuntime().availableProcessors() + 1;
     private static final ExecutorService exec = Executors.newFixedThreadPool(NTHREAD);
     private List<KJFile> processedFileLIst = new ArrayList<>();
     private DefaultListModel<String> model = new DefaultListModel<>();
 
-    public static DnDListFileProcessor instance() {
+    public static ListFileProcessor instance() {
         return instance;
     }
 
     public void process(Container container, List<File> list) {
-        model.clear();
         if (!(container instanceof JFrame)) {
             throw new IllegalArgumentException();
         }
@@ -56,8 +55,8 @@ public class DnDListFileProcessor {
 
         pbProgress.setValue(0);
         pbProgress.setEnabled(true);
-        DragAndDropEventProcessor processor =
-                new DragAndDropEventProcessor(dialog, pbProgress, list);
+        SwingProcessor processor =
+                new SwingProcessor(dialog, pbProgress, list);
         processor.execute();
         dialog.setVisible(true);
     }
@@ -66,7 +65,7 @@ public class DnDListFileProcessor {
         this.model = model;
     }
 
-    private class DragAndDropEventProcessor extends SwingWorker {
+    private class SwingProcessor extends SwingWorker {
         private final JDialog dlgProgress;
         private final JProgressBar progressBar;
         private final List<File> givenFileList;
@@ -76,7 +75,7 @@ public class DnDListFileProcessor {
         private CountDownLatch doneSignal = new CountDownLatch(NTHREAD);
         private static final int TIMEOUT = 10;
 
-        DragAndDropEventProcessor(JDialog dlgProgress, JProgressBar progressBar, List<File> list) {
+        SwingProcessor(JDialog dlgProgress, JProgressBar progressBar, List<File> list) {
             this.dlgProgress = dlgProgress;
             this.progressBar = progressBar;
             this.givenFileList = list;
@@ -90,6 +89,7 @@ public class DnDListFileProcessor {
             System.out.println("totalsize : " + totalSizeOfFiles);
 
             List<KJFile> totalFiles = traversal.retrieveAllFiles();
+            save(totalFiles);
             int totalCount = totalFiles.size();
             Runnable[] tasks = new Runnable[NTHREAD];
 
@@ -154,6 +154,7 @@ public class DnDListFileProcessor {
                 files.stream()
                         .sorted(Comparator.comparing(KJFile::getFileNameAbsolutePath))
                         .collect(java.util.stream.Collectors.toList());
+        model.clear();
         SwingUtilities.invokeLater(
                 () -> {
                     for (KJFile f : processedFileLIst) {
