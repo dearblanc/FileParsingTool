@@ -136,8 +136,10 @@ class ScrollPane {
 
                         List<KJFile> fileList = ListFileProcessor.instance().getProcessedFileList();
                         if (index < fileList.size()) {
-
-                            if (!fileList.get(index).getKeys().isEmpty()) {
+                            KJFile file = fileList.get(index);
+                            if (!file.isDone()) {
+                                setBackground(new Color(255, 255, 255));
+                            } else if (!file.getKeys().isEmpty()) {
                                 if (!isSelected) {
                                     setBackground(new Color(11, 204, 114));
                                 } else {

@@ -10,6 +10,7 @@ import java.util.regex.PatternSyntaxException;
 public class KJFile {
     private final String fileName;
     private List<Key> keys = new ArrayList<>();
+    private boolean doneFlag = false;
 
     KJFile(File file) {
         fileName = file.getAbsolutePath();
@@ -25,6 +26,11 @@ public class KJFile {
 
     public void setKeys(List<Key> keys) {
         this.keys = keys;
+        doneFlag = true;
+    }
+
+    public boolean isDone() {
+        return doneFlag;
     }
 
     boolean isIntendedFile() {

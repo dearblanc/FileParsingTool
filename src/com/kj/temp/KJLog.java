@@ -10,10 +10,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class KJLog {
-    private List<Key> keys = new ArrayList<>();
 
     public void parse(KJFile file) {
-        file.setKeys(keys);
+        List<Key> keys = new ArrayList<>();
 
         try (Scanner scanner = new Scanner(new FileInputStream(file.getFileNameAbsolutePath()))) {
 
@@ -25,6 +24,8 @@ public class KJLog {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            file.setKeys(keys);
         }
     }
 }
